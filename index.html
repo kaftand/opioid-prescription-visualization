@@ -1,0 +1,157 @@
+<script src="https://d3js.org/d3.v5.js"></script>
+<h1>Hydrocodone, Oxycodone, Tramadol, Morphine, and Fentanyl Prescriptions</h1>
+<h2>US Retail Pharmacies</h2>
+<div> data source: https://data.world/jessicayung/opioid-prescriptions-dispensed</div>
+<svg height=400 width=1250></svg>
+
+<script type="text/javascript"> 
+d3.csv("./data/opiods.csv", function(data) {
+return data
+}).then(function (data) {
+	var fixedData = data.map(function (d) {
+		return {"Quarter":d.Quarter,
+				"Hydrocodone":parseInt(d.Hydrocodone),
+				"Oxycodone":parseInt(d.Oxycodone),
+				"Tramadol":parseInt(d.Tramadol),
+				"Morphine":parseInt(d.Morphine),
+				"Fentanyl":parseInt(d.Fentanyl),}
+	});
+	var max = d3.max(fixedData, function(d,i)
+		{
+			return d.Hydrocodone + d.Oxycodone + d.Tramadol + d.Morphine + d.Fentanyl
+		});
+	var height = 300;
+	var xOffset = 40;
+	var svg = d3.select('svg');
+	var rect = svg.selectAll('rect').data(fixedData)
+	var newRect = rect.enter();
+	var yScale = d3.scaleLinear()
+          .range([300, 0])
+          .domain([0, max])
+	var colors = ["#f4be41","#aff441","#41f4b8","#419df4",'#9441f4'];
+	var xScale = d3.scaleBand()
+			.rangeRound([xOffset,1200])
+			.domain(fixedData.map(function (d,i) {
+				return d.Quarter
+			}));
+			console.log(yScale(0))
+			console.log
+	newRect.append('rect')
+		.attr('x',function (d,i) {
+			return xScale(d.Quarter)
+		})
+		.attr('y', function (d,i) {
+			return yScale(d.Hydrocodone)
+		})
+		.attr('width', xScale.bandwidth()-5)
+		.attr('height', function (d,i) {
+			return yScale(0)-yScale(d.Hydrocodone)
+		})
+		.attr('fill', function(d,i) {
+			return colors[0]
+		})
+		.on("mouseover", function (d,i) {handleMouseOver(d,i, "Hydrocodone", yScale(0))})
+		.on("mouseout", function (d,i) {handleMouseOut(d,i,"Hydrocodone")});
+		
+		newRect.append('rect')
+		.attr('x',function (d,i) {
+			return xScale(d.Quarter)
+		})
+		.attr('y',function (d,i) {
+			return yScale(d.Hydrocodone + d.Oxycodone)
+		})
+		.attr('width', xScale.bandwidth()-5)
+		.attr('height', function (d,i) {
+			return yScale(0) - yScale(d.Oxycodone)
+		})
+		.attr('fill', function(d,i) {
+			return colors[1]
+		})	
+		.on("mouseover", function (d,i) {handleMouseOver(d,i, "Oxycodone", height - yScale(d.Hydrocodone))})
+		.on("mouseout", function (d,i) {handleMouseOut(d,i,"Oxycodone")});
+		
+		newRect.append('rect')
+		.attr('x',function (d,i) {
+			return xScale(d.Quarter)
+		})
+		.attr('y',function (d,i) {
+			return yScale(d.Hydrocodone + d.Oxycodone + d.Tramadol)
+		})
+		.attr('width', xScale.bandwidth()-5)
+		.attr('height', function (d,i) {
+			return yScale(0) - yScale(d.Tramadol)
+		})
+		.attr('fill', function(d,i) {
+			return colors[2]
+		})
+		.on("mouseover", function (d,i) {handleMouseOver(d,i, "Tramadol", height - yScale(d.Hydrocodone + d.Oxycodone))})
+		.on("mouseout", function (d,i) {handleMouseOut(d,i,"Tramadol")});
+		
+		newRect.append('rect')
+		.attr('x',function (d,i) {
+			return xScale(d.Quarter)
+		})
+		.attr('y',function (d,i) {
+			return yScale(d.Hydrocodone + d.Oxycodone + d.Tramadol + d.Morphine)
+		})
+		.attr('width', xScale.bandwidth()-5)
+		.attr('height', function (d,i) {
+			return yScale(0) - yScale(d.Morphine)
+		})
+		.attr('fill', function(d,i) {
+			return colors[3]
+		})
+		.on("mouseover", function (d,i) {handleMouseOver(d,i, "Morphine", height - yScale(d.Hydrocodone + d.Oxycodone + d.Tramadol + d.Morphine))})
+		.on("mouseout", function (d,i) {handleMouseOut(d,i,"Morphine")});		
+		
+		newRect.append('rect')
+		.attr('x',function (d,i) {
+			console.log(d)
+			return xScale(d.Quarter)
+		})
+		.attr('y',function (d,i) {
+			return yScale(d.Hydrocodone + d.Oxycodone + d.Tramadol + d.Morphine + d.Fentanyl)
+		})
+		.attr('width', xScale.bandwidth()-5)
+		.attr('height', function (d,i) {
+			return yScale(0) - yScale(d.Fentanyl)
+		})
+		.attr('fill', function(d,i) {
+			return colors[4]
+		})
+		.on("mouseover", function (d,i) {handleMouseOver(d,i, "Fentanyl", height - yScale(d.Hydrocodone + d.Oxycodone + d.Tramadol + d.Morphine + d.Fentanyl))})
+		.on("mouseout", function (d,i) {handleMouseOut(d,i,"Fentanyl")});
+		
+		
+		var xAxis = d3.axisBottom(xScale)
+		var yAxis = d3.axisLeft(yScale)
+		svg.append('g').attr('transform', 'translate('+(xOffset).toString()+', 0)').call(yAxis
+		.tickFormat(d3.format(".1e")))
+		svg.append('g').attr('transform', 'translate(0, 300)').call(xAxis)
+		
+        function handleMouseOver(d, i, drugName, y) {  // Add interactivity
+
+            // Use D3 to select element, change color and size
+            // Specify where to put label of text
+            svg.append("text")
+            .attr('id', "t" + drugName + "-" + i)  // Create an id for text so we can select it later for removing on mouseout
+            .attr('x', function() {return 500})//{ return xScale(d.Quarter) - 30; })
+            .attr('y', function() {return 340})//{ return y + 15; })
+            .text(function() {
+              return (drugName + ': ' + d[drugName].toLocaleString() + ' prescriptions in ' + d.Quarter);  // Value of the text
+            });
+          }
+
+        function handleMouseOut(d, i, drugName) {
+            // Use D3 to select element, change color back to normal
+
+            // Select text by id and then remove
+            d3.select("#t" + drugName + "-" + i).remove();  // Remove text location
+          }
+
+})
+
+
+
+
+</script>
